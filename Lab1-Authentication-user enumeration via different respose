@@ -1,0 +1,38 @@
+USER ENUMERATION VIA DIFFERENT RESPONSE
+Executive Summary
+This lab demonstrates how an attacker can identify valid usernames within an application by observing subtle differences in HTTP responses. Once a valid username is identified, the lack of Rate Limiting allows for a successful brute-force attack on the password.
+
+Step-by-Step Methodology
+1. Intercepting the Login Request
+The process begins by navigating to the login page and attempting a login with arbitrary credentials. Using Burp Suite Proxy, I intercepted the POST /login request to analyze the parameters and the server's response.
+
+[SCREENSHOT 1: Burp Suite Proxy tab showing the captured POST request with username and password parameters]
+
+2. Testing for Rate Limiting (Repeater)
+Before launching an automated attack, it is essential to check if the server implements any Attempt Limits. I sent the request to Burp Repeater and issued multiple identical requests. The consistent response confirmed that no account lockout or IP-based rate limiting was active.
+
+[SCREENSHOT 2: Burp Repeater showing multiple 200 OK or 401 Unauthorized responses without any "Too many requests" warning]
+
+3. Configuring the Intruder Attack
+To automate the enumeration, I sent the request to Burp Intruder.
+
+Attack Type: I selected Sniper, as I was only targeting one parameter at a time.
+
+Payload Position: I set the payload marker on the username parameter.
+
+Payload List: I loaded the provided userlist from the lab into the Payloads tab.
+
+[SCREENSHOT 3: Burp Intruder 'Positions' tab with the username parameter highlighted with § symbols]
+
+4. Refining Results with Grep-Match
+Since the response differences can be extremely subtle (e.g., a missing period or a slightly different error message), I used the Grep - Match feature under the Settings tab. I pasted the standard "Invalid username" message to see which request would not match it.
+
+[SCREENSHOT 4: Burp Intruder 'Settings' tab showing the Grep-Match configuration]
+
+5. Identification and Brute-Force
+After starting the attack, I sorted the results by the Match column. One specific username returned a different response, confirming it as a valid username. I then repeated the process, fixing the valid username and brute-forcing the password parameter.
+
+[SCREENSHOT 5: Final Intruder results window showing the valid username and the successful password match]
+
+Conclusion
+The vulnerability exists because the application provides descriptive error messages that distinguish between a wrong username and a wrong password
